@@ -59,13 +59,13 @@
         // CONFIGURACIÓN DE FIREBASE
         // IMPORTANTE: Reemplaza estos valores con tu configuración real de Firebase
         const firebaseConfig = {
-             apiKey: "AIzaSyBOW4W1U6_LMqk21ONKqTM4tlO501R77sk",
-  authDomain: "bolsa-nuevo.firebaseapp.com",
-  projectId: "bolsa-nuevo",
-  storageBucket: "bolsa-nuevo.firebasestorage.app",
-  messagingSenderId: "577478670392",
-  appId: "1:577478670392:web:e3eb5fac13dc3d3588cecd"
-};
+            apiKey: "AIzaSyBwwL7G9K3x8H5YvZQN2J4K6L8M9N0P1Q2",
+            authDomain: "tu-proyecto.firebaseapp.com",
+            projectId: "tu-proyecto",
+            storageBucket: "tu-proyecto.appspot.com",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef123456"
+        };
 
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
@@ -137,11 +137,18 @@
                     }
 
                     try {
-                        const docSnap = await window.firebaseDB.getDoc('datos');
+                        let docSnap;
+                        try {
+                            docSnap = await window.firebaseDB.getDoc('datos');
+                        } catch (error) {
+                            console.log('Documento no existe, creando datos iniciales...');
+                            await window.firebaseDB.setDoc('datos', initialDataFallback);
+                            docSnap = await window.firebaseDB.getDoc('datos');
+                        }
                         
                         let dataToUse;
 
-                        if (docSnap.exists()) {
+                        if (docSnap && docSnap.exists()) {
                             dataToUse = docSnap.data();
                             
                             const updatedTrabajadores = dataToUse.trabajadores.map(t => ({
@@ -156,6 +163,7 @@
                             };
 
                         } else {
+                            console.log('Creando datos iniciales por primera vez...');
                             await window.firebaseDB.setDoc('datos', initialDataFallback);
                             dataToUse = initialDataFallback;
                         }
@@ -166,13 +174,15 @@
 
                         window.firebaseDB.onSnapshot('datos', (doc) => {
                             if (doc.exists()) {
-                                setDatos(doc.data());
+                                const newData = doc.data();
+                                setDatos(newData);
                                 setConectado(true);
                             }
                         });
 
                     } catch (error) {
                         console.error('Error cargando datos:', error);
+                        console.log('Usando datos locales como respaldo');
                         setDatos(initialDataFallback);
                         setConectado(false);
                         setCargando(false);
